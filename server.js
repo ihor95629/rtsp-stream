@@ -12,6 +12,14 @@ const handler = proxy({
 // Use cors middleware
 app.use(cors());
 
+// Middleware to set cache control headers
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // The endpoint our RTSP uses
 app.ws('/api/stream', handler);
 
