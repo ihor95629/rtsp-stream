@@ -1,24 +1,33 @@
-const axios = require('axios');
 const express = require('express');
 const app = express();
+const cors = require('cors'); // Import cors middleware
 
-app.get('/', async (req, res) => {
-  try {
-    // Fetch the webpage with the desired User-Agent header
-    const response = await axios.get('https://59e8-185-65-205-130.ngrok-free.app/', {
-      headers: {
-        'ngrok-skip-browser-warning': 'any'
-      }
+const { proxy, scriptUrl } = require('rtsp-relay')(app);
+
+const handler = proxy({
+  url: `rtsp://170.249.164.82:7447/4aetj08nIEMrhnQ6`,
+  verbose: false,
+});
+
+// Use cors middleware
+app.use(cors());
+
+// The endpoint our RTSP uses
+app.ws('/api/stream', handler);
+
+// This is an example HTML page to view the stream
+app.get('/', (req, res) =>
+  res.send(`
+  <canvas id='canvas'></canvas>
+
+  <script src='${scriptUrl}'></script>
+  <script>
+    loadPlayer({
+      url: 'wss://' + location.host + '/api/stream',
+      canvas: document.getElementById('canvas')
     });
+  </script>
+`),
+);
 
-    // Send the fetched content as the response
-    res.send(response.data);
-  } catch (error) {
-    console.error('Error fetching webpage:', error);
-    res.status(500).send('Error fetching webpage');
-  }
-});
-
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
-});
+app.listen(2000);
